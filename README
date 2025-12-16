@@ -1,0 +1,128 @@
+📊 Automated VSM Analyzer (Video Process Mining)
+Este repositório contém uma ferramenta de Process Mining e VSM (Value Stream Mapping) automatizado. A ferramenta processa gravações de tela (vídeos de operações em sistemas ERP, Web, etc.) e utiliza Visão Computacional (OpenCV) e OCR (Tesseract) para gerar relatórios detalhados de eficiência, tempos e movimentos.
+
+O sistema identifica automaticamente quando o usuário está digitando, clicando, rolando a tela ou esperando o sistema carregar, gerando um Excel com a linha do tempo completa e gráficos de intensidade.
+
+🚀 Funcionalidades
+Conversão Automática: O script bash converte vídeos (.mp4, .avi, etc.) em sequências de frames PDF prontos para OCR.
+
+OCR Inteligente: Lê títulos de janelas e rodapés (ex: mensagens de status do SAP) para identificar em qual tela o usuário está.
+
+Classificação de Ações:
+
+🟢 Digitação (VA - Valor Agregado): Detecta inserção de dados.
+
+🔵 Clique/Seleção: Detecta interação com mouse e menus.
+
+🟣 Pop-up/Sistema: Identifica janelas modais ou sub-telas.
+
+🟠 Scroll: Detecta rolagem de tela (tempo a ser otimizado).
+
+🔴 Mudança de Tela: Identifica navegação entre transações/páginas.
+
+Relatórios Automáticos:
+
+Gráfico de intensidade de atividade (Timeline visual).
+
+Excel com métricas de eficiência (Lead Time, Tempo de Input vs. Tempo de Sistema).
+
+Catálogo de telas acessadas.
+
+🛠️ Pré-requisitos e Dependências
+Para que o analisador funcione, você precisa de algumas ferramentas de sistema instaladas, além das bibliotecas Python.
+
+1. Ferramentas de Sistema (System Packages)
+Este projeto depende de ferramentas externas. Instale-as conforme seu sistema operacional:
+
+Linux (Ubuntu/Debian/Mint):
+
+Bash
+
+sudo apt-get update
+sudo apt-get install ffmpeg tesseract-ocr tesseract-ocr-por poppler-utils
+Nota: O pacote tesseract-ocr-por é essencial pois o script está configurado para ler português (lang="por").
+
+Windows:
+
+FFmpeg: Baixe e adicione ao PATH do sistema.
+
+Tesseract OCR: Baixe o instalador (ex: UB-Mannheim), instale incluindo o pacote de idioma "Portuguese", e adicione o caminho ao PATH.
+
+Poppler: Baixe os binários do poppler e adicione a pasta bin ao PATH.
+
+2. Bibliotecas Python
+Recomenda-se usar um ambiente virtual (venv). Crie um arquivo requirements.txt com o seguinte conteúdo e instale-o:
+
+Plaintext
+
+opencv-python
+numpy
+pdf2image
+pandas
+matplotlib
+pytesseract
+openpyxl
+img2pdf
+Instale com:
+
+Bash
+
+pip install -r requirements.txt
+📂 Estrutura do Projeto
+analisador13.py: Script principal. Gerencia threads, processamento de imagem, lógica de decisão (Digitando vs Clicando) e geração do Excel.
+
+preparar_batch.sh: Script auxiliar chamado automaticamente pelo Python. Usa ffmpeg para extrair frames dos vídeos e img2pdf para consolidá-los.
+
+▶️ Como Usar
+Coloque seus arquivos de vídeo (ex: gravacao_sap.mp4) na mesma pasta dos scripts.
+
+Dê permissão de execução para o script bash (apenas na primeira vez, se estiver no Linux/Mac):
+
+Bash
+
+chmod +x preparar_batch.sh
+Execute o script Python:
+
+Bash
+
+python analisador13.py
+O que vai acontecer?
+O script chamará o bash para converter todos os vídeos da pasta em arquivos .pdf temporários.
+
+O Python iniciará a leitura dos PDFs usando ThreadPoolExecutor (multithreading).
+
+Será gerado um arquivo de log debug_log.txt (opcional) e mensagens de progresso no terminal.
+
+Ao final, dois arquivos serão gerados para cada vídeo:
+
+grafico_[nome_do_video].png: Gráfico visual da operação.
+
+relatorio_[nome_do_video].xlsx: Relatório completo.
+
+📊 Entendendo o Relatório (Excel)
+O Excel gerado possui as seguintes abas:
+
+Resumo de Dados: KPIs gerais (Tempo Total, Tempo de Input, Eficiência Operacional %).
+
+Timeline Detalhada: Linha a linha de cada segundo do vídeo com a classificação da ação.
+
+Catálogo Telas: Lista sequencial de quais telas foram acessadas.
+
+Dicionário Telas: IDs únicos para cada tela identificada (ex: T01, T02).
+
+Tempo de processo por tela: Quanto tempo o usuário ficou em cada tela específica.
+
+⚙️ Configurações Avançadas
+No início do arquivo analisador13.py, você pode ajustar:
+
+Python
+
+FPS_CONFIG = 1      # Frames por segundo a analisar (1 é recomendado para performance)
+MAX_WORKERS = 8     # Número de threads simultâneas para OCR
+GERAR_LOG_DEBUG = False # Mude para True para ver detalhes da decisão do algoritmo
+🐛 Troubleshooting Comum
+Erro "tesseract is not installed": Certifique-se de que instalou o binário do Tesseract no sistema e que ele está acessível via terminal.
+
+Erro "pdfinfo_from_path": Indica que o poppler-utils não está instalado ou não está no PATH.
+
+Acurácia Baixa: Verifique se a resolução do vídeo é boa. O OCR depende de clareza visual. O script aplica filtros (upscale, threshold), mas vídeos muito comprimidos podem falhar.
